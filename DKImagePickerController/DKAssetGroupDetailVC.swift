@@ -354,24 +354,33 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
                 imagePickerController.setViewControllers([self.createCamera()], animated: false)
                 return
         }
+//        let startTime = NSDate()
+//        print("Begin enumerating groups \(startTime.timeIntervalSinceNow)")
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) { () -> Void in
+//            print("On high priority thread \(startTime.timeIntervalSinceNow)")
 
             self.library.enumerateGroupsWithTypes(self.imagePickerController!.assetGroupTypes, usingBlock: { [weak self] (group: ALAssetsGroup! , stop: UnsafeMutablePointer<ObjCBool>) in
+//                print("Enter library enumeration block \(startTime.timeIntervalSinceNow)")
 
                 guard let strongSelf = self else { return }
                 guard let imagePickerController = strongSelf.imagePickerController else { return }
                 if group != nil {
+//                    print("group is non-nil \(startTime.timeIntervalSinceNow)")
 
                     group.setAssetsFilter(imagePickerController.assetType.toALAssetsFilter())
+//                    print("enumerating group \(startTime.timeIntervalSinceNow)")
 
                     group.enumerateAssetsWithOptions(.Reverse, usingBlock: { [weak self] (result: ALAsset!, index: Int, stop: UnsafeMutablePointer<ObjCBool>) -> Void in
                         guard let strongSelf = self else { return }
+//                        print("Enter group enumeration block \(startTime.timeIntervalSinceNow)")
                         guard index > 0 else {
+//                            print("index == 0 \(startTime.timeIntervalSinceNow)")
                             return
                         }
                         let groupName = group.valueForProperty(ALAssetsGroupPropertyName) as! String
 
                         if result != nil {
+//                            print("\(groupName) result is non-nil \(startTime.timeIntervalSinceNow)")
                             let assetGroup = DKAssetGroup()
                             assetGroup.groupName = groupName
                             assetGroup.thumbnail = UIImage(CGImage:result.thumbnail().takeUnretainedValue())
@@ -382,10 +391,13 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
                             
                             stop.memory = true
                         } else {
+//                            print("\(groupName) result is nil \(startTime.timeIntervalSinceNow)")
                         }
                     })
                 } else {
+//                    print("group is nil \(startTime.timeIntervalSinceNow)")
                     dispatch_async(dispatch_get_main_queue(), { [weak self] () -> Void in
+//                        print("Returned to main thread \(startTime.timeIntervalSinceNow)")
                         guard let strongSelf = self else { return }
                         strongSelf.hidesCamera = imagePickerController.sourceType.rawValue & DKImagePickerControllerSourceType.Camera.rawValue == 0
                         strongSelf.selectGroupButton.enabled = strongSelf.groups.count > 1
@@ -394,6 +406,7 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
                 }
             }, failureBlock: {(error: NSError!) in
                 dispatch_async(dispatch_get_main_queue(), { [weak self]() -> Void in
+//                    print("Failed to main thread \(startTime.timeIntervalSinceNow)")
                     guard let strongSelf = self else { return }
                     strongSelf.collectionView?.hidden = true
                     strongSelf.view.addSubview(DKPermissionView.permissionView(.Photo))
