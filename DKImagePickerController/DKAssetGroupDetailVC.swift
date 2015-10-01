@@ -454,15 +454,19 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
         DKPopoverViewController.popoverViewController(self.selectGroupVC, fromView: self.selectGroupButton)
     }
     
-    func createCamera() -> DKCamera {
-        let camera = DKCamera()
-        camera.didCancel = {[unowned camera] () -> Void in
-            camera.dismissViewControllerAnimated(true, completion: nil)
+    var cameraDidFinishCapture: ((image: UIImage) -> ())?
+    var cameraDidCancel: (() -> ())?
+    func createCamera() -> UIImagePickerController {
+        let camera = UIImagePickerController()
+        camera.sourceType = UIImagePickerControllerSourceType.Camera
+        camera.delegate = self
+        self.cameraDidFinishCapture = { [weak self] (image: UIImage) -> () in
+            NSNotificationCenter.defaultCenter().postNotificationName(DKImageSelectedNotification, object: DKAsset(image: image))
+            self?.dismissViewControllerAnimated(true, completion: nil)
         }
         
-        camera.didFinishCapturingImage = {(image) in
-            NSNotificationCenter.defaultCenter().postNotificationName(DKImageSelectedNotification, object: DKAsset(image: image))
-            self.dismissViewControllerAnimated(true, completion: nil)
+        self.cameraDidCancel = { [weak self] in
+            self?.dismissViewControllerAnimated(true, completion: nil)
         }
         
         if AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo) != .Authorized {
@@ -566,4 +570,14 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
         }
     }
     
+}
+
+extension DKAssetGroupDetailVC: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(picker: UIImagePickerController, didFinishPickingImage image: UIImage, editingInfo: [String : AnyObject]?) {
+        self.cameraDidFinishCapture?(image: image)
+    }
+    
+    func imagePickerControllerDidCancel(picker: UIImagePickerController) {
+        self.cameraDidCancel?()
+    }
 }
