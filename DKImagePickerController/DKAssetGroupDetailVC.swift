@@ -356,7 +356,7 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
         }
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) { () -> Void in
 
-            self.library.enumerateGroupsWithTypes(ALAssetsGroupAll, usingBlock: { [weak self] (group: ALAssetsGroup! , stop: UnsafeMutablePointer<ObjCBool>) in
+            self.library.enumerateGroupsWithTypes(self.imagePickerController!.assetGroupTypes, usingBlock: { [weak self] (group: ALAssetsGroup! , stop: UnsafeMutablePointer<ObjCBool>) in
 
                 guard let strongSelf = self else { return }
                 guard let imagePickerController = strongSelf.imagePickerController else { return }
