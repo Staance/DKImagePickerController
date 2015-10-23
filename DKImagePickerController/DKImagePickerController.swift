@@ -16,14 +16,28 @@ import AssetsLibrary
  */
 public class DKAsset: NSObject {
     
-    /// Returns a CGImage of the representation that is appropriate for displaying full screen.
+    /// Returns a UIImage of the representation that is appropriate for displaying full screen.
     public private(set) lazy var fullScreenImage: UIImage? = {
-        return UIImage(CGImage: (self.originalAsset?.defaultRepresentation().fullScreenImage().takeUnretainedValue())!)
+        if let asset = self.originalAsset {
+            return UIImage(
+                CGImage: asset.defaultRepresentation().fullScreenImage().takeUnretainedValue(),
+                scale: 1.0,
+                orientation: asset.defaultRepresentation().imageOrientation()
+            )
+        }
+        return nil
     }()
     
-    /// Returns a CGImage representation of the asset.
+    /// Returns a UIImage representation of the asset.
     public private(set) lazy var fullResolutionImage: UIImage? = {
-        return UIImage(CGImage: (self.originalAsset?.defaultRepresentation().fullResolutionImage().takeUnretainedValue())!)
+        if let asset = self.originalAsset {
+            return UIImage(
+                CGImage: asset.defaultRepresentation().fullResolutionImage().takeUnretainedValue(),
+                scale: 1.0,
+                orientation: asset.defaultRepresentation().imageOrientation()
+            )
+        }
+        return nil
     }()
     
     /// The url uniquely identifies an asset that is an image or a video.
@@ -258,4 +272,10 @@ internal extension UIViewController {
         }
     }
     
+}
+
+public extension ALAssetRepresentation {
+    func imageOrientation() -> UIImageOrientation! {
+        return UIImageOrientation(rawValue: self.orientation().rawValue)!
+    }
 }
