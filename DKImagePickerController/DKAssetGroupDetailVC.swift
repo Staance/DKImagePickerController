@@ -339,9 +339,9 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
         self.collectionView!.registerClass(DKAssetCell.self, forCellWithReuseIdentifier: DKImageAssetIdentifier)
         self.collectionView!.registerClass(DKVideoAssetCell.self, forCellWithReuseIdentifier: DKVideoAssetIdentifier)
         
-        self.loadAssetGroupsThen { (error: NSError?) -> () in
-            if let firstGroup = self.groups.first {
-                self.selectAssetGroup(firstGroup)
+        self.loadAssetGroupsThen { [weak self] (error: NSError?) -> () in
+            if let firstGroup = self?.groups.first {
+                self?.selectAssetGroup(firstGroup)
             }
         }
         
@@ -356,10 +356,11 @@ internal class DKAssetGroupDetailVC: UICollectionViewController {
         }
 //        let startTime = NSDate()
 //        print("Begin enumerating groups \(startTime.timeIntervalSinceNow)")
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) { () -> Void in
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) { [weak self] () -> Void in
 //            print("On high priority thread \(startTime.timeIntervalSinceNow)")
+            guard let strongSelf = self else { return }
 
-            self.library.enumerateGroupsWithTypes(self.imagePickerController!.assetGroupTypes, usingBlock: { [weak self] (group: ALAssetsGroup! , stop: UnsafeMutablePointer<ObjCBool>) in
+            strongSelf.library.enumerateGroupsWithTypes(strongSelf.imagePickerController!.assetGroupTypes, usingBlock: { [weak self] (group: ALAssetsGroup! , stop: UnsafeMutablePointer<ObjCBool>) in
 //                print("Enter library enumeration block \(startTime.timeIntervalSinceNow)")
 
                 guard let strongSelf = self else { return }
